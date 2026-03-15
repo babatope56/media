@@ -1,0 +1,308 @@
+{
+	"info": {
+		"name": "Media API Collection",
+		"description": "Complete REST API collection for Media Application with authentication (JWT) and media management endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Sign Up",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('jwt_token', jsonData.token);",
+									"    pm.environment.set('username', jsonData.username);",
+									"    console.log('Token saved to environment');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"john_doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						},
+						"description": "Register a new user account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('jwt_token', jsonData.token);",
+									"    pm.environment.set('username', jsonData.username);",
+									"    console.log('JWT Token saved: ' + jsonData.token.substring(0, 20) + '...');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"john_doe\",\n  \"password\": \"SecurePassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Authenticate user and receive JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Logout user and invalidate session"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Media Management",
+			"item": [
+				{
+					"name": "Get All Media",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/media",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"media"
+							]
+						},
+						"description": "Retrieve all media items from the database"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Media by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/media/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"media",
+								"1"
+							]
+						},
+						"description": "Get a specific media item by its ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Media",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('media_id', jsonData.id);",
+									"    console.log('Media created with ID: ' + jsonData.id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Sample Video\",\n  \"description\": \"This is a sample video for testing\",\n  \"url\": \"https://example.com/sample-video.mp4\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/media",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"media"
+							]
+						},
+						"description": "Create a new media item"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Media",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Video Title\",\n  \"description\": \"Updated description for the video\",\n  \"url\": \"https://example.com/updated-video.mp4\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/media/{{media_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"media",
+								"{{media_id}}"
+							]
+						},
+						"description": "Update an existing media item by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Media",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/media/{{media_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"media",
+								"{{media_id}}"
+							]
+						},
+						"description": "Delete a media item by ID"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Database Console",
+			"item": [
+				{
+					"name": "H2 Console",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/h2-console",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"h2-console"
+							]
+						},
+						"description": "Access the H2 database console (opens in browser)"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "username",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "media_id",
+			"value": "1",
+			"type": "string"
+		}
+	]
+}
+
