@@ -13,6 +13,7 @@ import com.media.media.repository.UserRepository;
 import com.media.media.security.JwtTokenProvider;
 import com.media.media.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,9 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.auth.expose-reset-token:false}")
+    private boolean exposeResetToken;
     
     @Override
     public AuthResponse signUp(SignUpRequest request) {
@@ -108,7 +112,7 @@ public class AuthServiceImpl implements AuthService {
 
         return new PasswordResetResponse(
                 "Reset token created. Use it to choose a new password.",
-                rawToken
+                exposeResetToken ? rawToken : null
         );
     }
 

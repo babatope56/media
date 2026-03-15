@@ -17,7 +17,7 @@ import java.util.Map;
 @Component
 public class JwtTokenProvider {
     
-    @Value("${jwt.secret:mySecretKeyForJWTTokenGenerationAndValidationPurpose123456789}")
+    @Value("${jwt.secret}")
     private String jwtSecret;
     
     @Value("${jwt.expiration:86400000}")
