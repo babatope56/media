@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,7 +40,7 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
-        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        SecretKey key = buildSigningKey();
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -50,11 +52,28 @@ public class JwtTokenProvider {
     }
 
     private Claims parseClaims(String token) {
-        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        SecretKey key = buildSigningKey();
         return Jwts.parser()
                 .setSigningKey(key)
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    private SecretKey buildSigningKey() {
+        byte[] raw = jwtSecret.getBytes(StandardCharsets.UTF_8);
+
+        // Dev convenience: allow shorter passphrases by deriving a 512-bit key.
+        if (raw.length < 64) {
+            try {
+                byte[] derived = MessageDigest.getInstance("SHA-512").digest(raw);
+                log.debug("JWT secret is shorter than 64 bytes; deriving key via SHA-512 for HS512 compatibility.");
+                return Keys.hmacShaKeyFor(derived);
+            } catch (NoSuchAlgorithmException e) {
+                throw new IllegalStateException("SHA-512 is not available", e);
+            }
+        }
+
+        return Keys.hmacShaKeyFor(raw);
     }
 
     public String getUsernameFromToken(String token) {
