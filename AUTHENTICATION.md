@@ -1,7 +1,8 @@
 # Authentication API Documentation
 
 ## Overview
-This application provides JWT-based authentication with Sign Up, Login, and Logout functionality.
+This API uses JWT authentication with an `httpOnly` cookie (`jwt`) for browser-style sessions.
+You can also pass a bearer token in `Authorization` when needed by API clients.
 
 ## Endpoints
 
@@ -20,12 +21,13 @@ This application provides JWT-based authentication with Sign Up, Login, and Logo
 **Response (Success - 201):**
 ```json
 {
-  "token": "eyJhbGciOiJIUzUxMiJ9...",
+  "token": null,
   "username": "john_doe",
   "email": "john@example.com",
   "message": "Sign up successful"
 }
 ```
+On success, the JWT is returned as `Set-Cookie` (`jwt`, `httpOnly`) instead of response body token.
 
 **Response (Error - 400):**
 ```json
@@ -33,11 +35,9 @@ This application provides JWT-based authentication with Sign Up, Login, and Logo
   "token": null,
   "username": null,
   "email": null,
-  "message": "Username already taken" OR "Email already registered"
+  "message": "Username already taken"
 }
 ```
-
----
 
 ### 2. Login
 **Endpoint:** `POST /api/auth/login`
@@ -53,12 +53,13 @@ This application provides JWT-based authentication with Sign Up, Login, and Logo
 **Response (Success - 200):**
 ```json
 {
-  "token": "eyJhbGciOiJIUzUxMiJ9...",
+  "token": null,
   "username": "john_doe",
   "email": "john@example.com",
   "message": "Login successful"
 }
 ```
+On success, the JWT is returned as `Set-Cookie` (`jwt`, `httpOnly`).
 
 **Response (Error - 401):**
 ```json
@@ -70,15 +71,12 @@ This application provides JWT-based authentication with Sign Up, Login, and Logo
 }
 ```
 
----
-
 ### 3. Logout
 **Endpoint:** `POST /api/auth/logout`
 
-**Headers:**
-```
-Authorization: Bearer {token}
-```
+You may authenticate with:
+- `Cookie: jwt=...` (default browser/Postman flow), or
+- `Authorization: Bearer {token}`.
 
 **Response (Success - 200):**
 ```json
@@ -89,41 +87,31 @@ Authorization: Bearer {token}
   "message": "Logout successful"
 }
 ```
+The `jwt` cookie is cleared on logout.
 
----
+### 4. Current User
+**Endpoint:** `GET /api/auth/me`
 
-## Database Configuration
+Returns the currently authenticated user from JWT context.
 
-The application uses Oracle Database. Update the `application.yaml` with your database credentials:
+### 5. Password Reset
+- `POST /api/auth/forgot-password`
+- `POST /api/auth/reset-password`
+
+## Local Configuration Notes
+
+The default setup uses H2 in-memory DB and requires a JWT secret:
 
 ```yaml
-spring:
-  datasource:
-    url: jdbc:oracle:thin:@localhost:1521:xe
-    username: system
-    password: oracle
+jwt:
+  secret: ${JWT_SECRET}
 ```
 
-The database tables will be auto-created on application startup (ddl-auto: create-drop).
-
----
+For local development, create `application-local.yaml` (ignored by git) and override local-only settings there.
 
 ## Security Features
 
-- Passwords are encrypted using BCrypt
-- JWT tokens for stateless authentication
-- Token expiration: 24 hours (configurable)
-- Username and email uniqueness validation
-
----
-
-## Media API
-
-The application also includes a Media API with CRUD operations:
-
-- `GET /api/media` - Get all media
-- `GET /api/media/{id}` - Get media by ID
-- `POST /api/media` - Create new media
-- `PUT /api/media/{id}` - Update media
-- `DELETE /api/media/{id}` - Delete media
-
+- Passwords are encrypted with BCrypt
+- JWT expiration is configurable (`jwt.expiration`, default 24 hours)
+- Logout invalidates JWT via in-memory token blacklist until expiry
+- Login attempts are rate-limited per IP

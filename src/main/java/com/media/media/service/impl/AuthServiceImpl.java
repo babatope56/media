@@ -11,6 +11,7 @@ import com.media.media.model.User;
 import com.media.media.repository.PasswordResetTokenRepository;
 import com.media.media.repository.UserRepository;
 import com.media.media.security.JwtTokenProvider;
+import com.media.media.security.TokenBlacklistService;
 import com.media.media.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final TokenBlacklistService tokenBlacklistService;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${app.auth.expose-reset-token:false}")
@@ -85,9 +87,22 @@ public class AuthServiceImpl implements AuthService {
     
     @Override
     public AuthResponse logout(String token) {
-        // In a token-based system, logout is typically handled client-side by discarding the token
-        // This is a placeholder for additional logout logic if needed (e.g., token blacklisting)
+        if (token != null) {
+            try {
+                long expiresAt = jwtTokenProvider.getExpirationFromToken(token);
+                tokenBlacklistService.blacklist(token, expiresAt);
+            } catch (Exception ignored) {
+                // Token already invalid or expired — nothing to blacklist
+            }
+        }
         return new AuthResponse(null, null, null, "Logout successful");
+    }
+
+    @Override
+    public AuthResponse getCurrentUser(String username) {
+        return userRepository.findByUsername(username)
+                .map(user -> new AuthResponse(null, user.getUsername(), user.getEmail(), "ok"))
+                .orElse(null);
     }
 
     @Override

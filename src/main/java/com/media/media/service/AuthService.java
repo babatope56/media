@@ -11,6 +11,7 @@ public interface AuthService {
     AuthResponse signUp(SignUpRequest request);
     AuthResponse login(LoginRequest request);
     AuthResponse logout(String token);
+    AuthResponse getCurrentUser(String username);
     PasswordResetResponse forgotPassword(ForgotPasswordRequest request);
     PasswordResetResponse resetPassword(ResetPasswordRequest request);
 }
